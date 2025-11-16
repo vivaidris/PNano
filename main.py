@@ -1,16 +1,12 @@
 import os
 import curses
 from curses import wrapper
+import sys
 
 cursor = {
     "row": 0,
     "col": 0
 }
-
-f = open("hello.txt")
-filename = "hello.txt"
-lines = f.read().splitlines()
-lines_s = [list(line) for line in lines]
 
 # move left cursor
 def ml(cursor, lines_s):
@@ -47,32 +43,40 @@ def save_file(filename, lines_s):
             f.write(''.join(line) + '\n')
 
 
-def main(stdscr):
+
+
+def main(stdscr, filename):
     # initialize curses
     curses.curs_set(0)
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)
 
-    # your existing buffer and cursor
+    try:
+        with open(filename, "r") as f:
+            lines_s = [list(line.rstrip("\n")) for line in f.readlines()]
+    except FileNotFoundError:
+        # If file does not exist, start with a blank buffer
+        lines_s = [[]]
+
+
+    # existing buffer and cursor
     mode = "NORMAL"
-    lines_s = [list(line) for line in open("hello.txt").read().splitlines()]
     cursor = {"row": 0, "col": 0}
 
     while True:
         stdscr.clear()
         
-        # draw your buffer
+        # draw buffer
         for i, line in enumerate(lines_s):
             line_str = ''.join(line)
-
+            col = min(cursor["col"], len(line_str))  # safe column
             if i == cursor["row"]:
-            # Insert ^ at the cursor column
-                display_line = line_str[:cursor["col"]] + "|" + line_str[cursor["col"]:]
+                display_line = line_str[:col] + "|" + line_str[col:]
             else:
                 display_line = line_str
+                stdscr.addstr(i, 0, f"{i + 1} | {display_line}")
 
-            stdscr.addstr(i, 0, f"{i + 1} | {display_line}")
 
         # move the terminal cursor
         stdscr.move(cursor["row"], cursor["col"])
@@ -140,6 +144,9 @@ def main(stdscr):
             elif key == 23:
                 save_file(filename, lines_s)
 
-
-
-curses.wrapper(main)
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    else:
+        filename = "hello.txt"
+    curses.wrapper(main, filename)
