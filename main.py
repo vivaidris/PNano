@@ -70,13 +70,14 @@ def main(stdscr, filename):
         # draw buffer
         for i, line in enumerate(lines_s):
             line_str = ''.join(line)
-            col = min(cursor["col"], len(line_str))  # safe column
+
             if i == cursor["row"]:
-                display_line = line_str[:col] + "|" + line_str[col:]
+            # Insert | at the cursor column
+                display_line = line_str[:cursor["col"]] + "|" + line_str[cursor["col"]:]
             else:
                 display_line = line_str
-                stdscr.addstr(i, 0, f"{i + 1} | {display_line}")
 
+            stdscr.addstr(i, 0, f"{i + 1} | {display_line}")
 
         # move the terminal cursor
         stdscr.move(cursor["row"], cursor["col"])
